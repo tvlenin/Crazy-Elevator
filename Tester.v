@@ -36,12 +36,15 @@ module Tester;
 	reg Button3;
 	reg Button4;
 	reg Button5;
-	
+	reg [1:0] testPActual;
+	reg [1:0] testSolicitud;
 
 	// Outputs
 	wire [1:0]test_out;
 	wire [7:0] sevenseg;
 	wire [1:0] Level;
+	wire AbreCierra;
+   wire SubeBaja;
 
 	// Instantiate the Unit Under Test (UUT)
 	Interface uut (
@@ -55,14 +58,18 @@ module Tester;
 		.Button2(Button2), 
 		.Button3(Button3), 
 		.Button4(Button4), 
-		.Button5(Button5), 
+		.Button5(Button5),
+		.testPActual(testPActual),
+		.testSolicitud(testSolicitud),
 		.test_out(test_out),
 		.sevenseg(sevenseg),
-		.Level(Level)
+		.Level(Level),
+		.AbreCierra(AbreCierra),
+		.SubeBaja(SubeBaja)
 	);
 	
 	//always 
-		always #1clk = ~clk;  // 100 MHz
+	always #1clk = ~clk;  // 100 MHz
 	initial begin
 	
 		// Initialize Inputs
@@ -77,45 +84,77 @@ module Tester;
 		Button3 = 0;
 		Button4 = 0;
 		Button5 = 0;
-		//test_out = 0;
+		testPActual=0;
+	   testSolicitud=0;
 
-		// Wait 100 ns for global reset to finish
+		//Estoy en el piso 1 y quiero subir
 		#100;
 		switch1 = 1;
 		Button5 = 1;
 		switch2 = 0;
 		switch3 = 0;
+
+		// La maquina esta en el piso 1 y va subiendo
+		testPActual = 0;
+		Button2 = 1;
+		Button4 = 1;
+		
 		#2;
+		Button4 = 0; //Suelta el boton
+		Button5 = 0; //Suelta la interrupcion
+		
+		#2;
+		Button3 = 1;	//Solicitud de subir al piso 4 dentro del ascensor
+		testSolicitud = 3;
+		
+		#2;
+		Button3 = 0;	//Suelta el boton 
 		switch1 = 0;
 		Button5 = 1;
 		switch2 = 0;
 		switch3 = 1;
+		
 		#2;
-		switch1 = 1;
-		Button5 = 1;
-		switch2 = 1;
-		switch3 = 0;
-		#2;
-		switch1 = 0;
-		Button5 = 1;
-		switch2 = 1;
-		switch3 = 1;
-
-		#2;
-		switch1 = 0;
-		Button5 = 0;
-		#2;
-		switch1 = 1;
 		Button5 = 0;
 		
+		#2;
+		testPActual = 1;//Indica que esta en el piso 2
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;	//Suelta el boton
+		
+		#2;
+		testPActual = 2;//Indica que esta en el piso 3
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;	//Suelta el boton
+		
+		#2;
+		testPActual = 3;	//Indica que esta en el piso 4
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;		//Suelta el boton
+		
+		#2;
+		testPActual = 2;//Indica que esta en el piso 3
+		Button2 = 0;
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;	//Suelta el boton
 		
 		
+		#2;
+		testPActual = 1;//Indica que esta en el piso 2
+		Button2 = 0;
+		Button4 = 1;
 		
+		#4;
+		Button4 = 0;	//Suelta el boton
 		
-		
-        
-		// Add stimulus here
-
 	end
       
 endmodule
