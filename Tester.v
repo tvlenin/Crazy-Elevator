@@ -36,15 +36,19 @@ module Tester;
 	reg Button3;
 	reg Button4;
 	reg Button5;
+	reg Button6;
+	reg Button7;
 	
 
 	// Outputs
-	wire [1:0]test_out;
+	wire [1:0] test_out;
 	wire [7:0] sevenseg;
 	wire [1:0] Level;
+	wire [3:0] reloj;
 
 	// Instantiate the Unit Under Test (UUT)
 	Interface uut (
+		.exit(exit),
 		.clk(clk), 
 		.enable(enable), 
 		.reset(reset), 
@@ -56,9 +60,12 @@ module Tester;
 		.Button3(Button3), 
 		.Button4(Button4), 
 		.Button5(Button5), 
+		.Button6(Button6), 
+		.Button7(Button7), 
 		.test_out(test_out),
 		.sevenseg(sevenseg),
-		.Level(Level)
+		.Level(Level),
+		.reloj(reloj)
 	);
 	
 	//always 
@@ -77,39 +84,69 @@ module Tester;
 		Button3 = 0;
 		Button4 = 0;
 		Button5 = 0;
+		Button6 = 0;
+		Button7 = 0;
 		//test_out = 0;
 
 		// Wait 100 ns for global reset to finish
-		#100;
-		switch1 = 1;
-		Button5 = 1;
-		switch2 = 0;
-		switch3 = 0;
+		#200;
+		reset=1;
 		#2;
-		switch1 = 0;
-		Button5 = 1;
-		switch2 = 0;
-		switch3 = 1;
-		#2;
-		switch1 = 1;
-		Button5 = 1;
-		switch2 = 1;
-		switch3 = 0;
-		#2;
-		switch1 = 0;
-		Button5 = 1;
-		switch2 = 1;
-		switch3 = 1;
-
-		#2;
-		switch1 = 0;
-		Button5 = 0;
-		#2;
-		switch1 = 1;
-		Button5 = 0;
-		
-		
-		
+		reset=0;
+		#30;
+		Button6 = 1;
+		#5
+		Button4 = 1;
+		#2
+		Button4 = 0;
+		#3;
+		Button6 = 0;
+		////////////////solicitud para subir del segundo al cuarto
+		#50;
+		Button6 = 1;
+		#5
+		Button4 = 1;
+		#2
+		Button4 = 0;
+		#3;
+		Button6 = 0;
+		////////////////solicitud para subir del tercer al cuarto
+		#41;
+		Button6 = 1;
+		#5
+		Button4 = 1;
+		#5
+		Button4 = 0;
+		#3;
+		Button6 = 0;
+		////////////////solicitud para bajar del cuarto al tercero  
+		#41;
+		Button6 = 1;
+		#5
+		Button1 = 1;
+		#5
+		Button1  = 0;
+		#3;
+		Button6 = 0;
+		#41;////////////////solicitud para bajar del tercero al segundo
+		Button6 = 1;
+		#5
+		Button1 = 1;
+		#5
+		Button1  = 0;
+		#3;
+		Button6 = 0;
+		#41;////////////////solicitud para bajar del segundo al primer piso
+		Button6 = 1;
+		#5
+		Button1 = 1;
+		#5
+		Button1  = 0;
+		#3;
+		Button6 = 0;
+		#45;
+		Button6 = 1;
+	
 		
 		
 		

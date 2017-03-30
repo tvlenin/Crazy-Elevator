@@ -18,7 +18,9 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
+
 module up_down_button(
+	 output [1:0]clk,
     input btn5,
 	 input switchLSB,
 	 input switchMSB,
