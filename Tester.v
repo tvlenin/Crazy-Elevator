@@ -1,26 +1,5 @@
 `timescale 1ns / 1ps
 
-////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer:
-//
-// Create Date:   10:41:41 03/18/2017
-// Design Name:   Interface
-// Module Name:   /home/tvlenin/Projects/XILINX/Prueba2/Tester.v
-// Project Name:  Prueba2
-// Target Device:  
-// Tool versions:  
-// Description: 
-//
-// Verilog Test Fixture created by ISE for module: Interface
-//
-// Dependencies:
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-////////////////////////////////////////////////////////////////////////////////
 
 module Tester;
 
@@ -88,7 +67,7 @@ module Tester;
 	   testSolicitud=0;
 
 		//Estoy en el piso 1 y quiero subir
-		#100;
+		#10;
 		switch1 = 1;
 		Button5 = 1;
 		switch2 = 0;
@@ -138,6 +117,19 @@ module Tester;
 		#2;
 		Button4 = 0;		//Suelta el boton
 		
+		
+		
+		#2;				//Solicitud del piso 3 para subir
+		switch1 = 1;
+		Button5 = 1;
+		switch2 = 1;
+		switch3 = 0;
+		
+		#2;
+		Button5 = 0;
+		
+		
+		
 		#2;
 		testPActual = 2;//Indica que esta en el piso 3
 		Button2 = 0;
@@ -152,10 +144,32 @@ module Tester;
 		Button2 = 0;
 		Button4 = 1;
 		
-		#4;
+		#2;
 		Button4 = 0;	//Suelta el boton
+		
+		#2;
+		Button3 = 1;	//Solicitud de subir al piso 4 dentro del ascensor
+		testSolicitud = 3;
+		
+		#2;
+		Button3 = 0;
+		testPActual = 2;//Indica que esta en el piso 3
+		Button2 = 0;
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;	//Suelta el boton
+		
+		//PROBAR 2 SOLICTUDES AQUI
+		
+		#2;
+		testPActual = 3;	//Indica que esta en el piso 4
+		Button4 = 1;
+		
+		#2;
+		Button4 = 0;		//Suelta el boton
+		
 		
 	end
       
 endmodule
-

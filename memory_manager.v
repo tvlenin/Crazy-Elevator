@@ -29,26 +29,28 @@ module memory_manager(
 	 initial begin
 	 for (index=0; index < 8; index = index + 1)
 		Heap[index] = 4'b0000;
+	 Counter = 0;
 	 topHeap = 0;
 	 tempH = 0;
 	 Stops = 0;
+	 reg_OCRequest = 0;
+	 reg_UDRequest = 0;
 	 RegFloor1[0] = 1'b0;
 	 RegFloor1[1] = 1'b0;
 	 RegFloor1[2] = 1'b0;
-	 RegFloor1[2] = 1'b0;
-	 RegFloor2[0] = 1'b0;
-	 RegFloor2[1] = 1'b1;
+	 RegFloor1[3] = 1'b0;
+	 RegFloor2[0] = 1'b1;
+	 RegFloor2[1] = 1'b0;
 	 RegFloor2[2] = 1'b0;
 	 RegFloor2[3] = 1'b0;
-	 RegFloor3[0] = 1'b1;
-	 RegFloor3[1] = 1'b0;
+	 RegFloor3[0] = 1'b0;
+	 RegFloor3[1] = 1'b1;
 	 RegFloor3[2] = 1'b0;
 	 RegFloor3[3] = 1'b0;
 	 RegFloor4[0] = 1'b1;
 	 RegFloor4[1] = 1'b1;
 	 RegFloor4[2] = 1'b0;
 	 RegFloor4[3] = 1'b0;
-	 Counter = 0;
 	 end
 	 
 	 always@(*)begin
@@ -79,24 +81,26 @@ module memory_manager(
 	
 	 if(Stops == 0)//No hay mas instrucciones que verificar, verificar la cola
 	 begin
-		reg_OCRequest = 0;
 		tempH = Heap[0];
-		topHeap[0] = tempH[0];
-		topHeap[1] = tempH[1];
-		if(topHeap > CurrentFloor)
-			reg_UDRequest = 1;
-		else
-			reg_UDRequest = 0;
-			
-		if(topHeap == 0)
-			Stops[0] = 1;
-		else if(topHeap == 1)
-			Stops[1] = 1;
-		else if(topHeap == 2)
-			Stops[2] = 1;
-		else if(topHeap == 3)
-			Stops[3] = 1;
-		
+		reg_OCRequest = 0;
+		if(tempH[3] == 1)//Solo si hay instruccion esperando en la cola (Heap)
+		begin
+			topHeap[0] = tempH[0];
+			topHeap[1] = tempH[1];
+			if(topHeap > CurrentFloor)
+				reg_UDRequest = 1;
+			else
+				reg_UDRequest = 0;
+				
+			if(topHeap == 0)
+				Stops[0] = 1;
+			else if(topHeap == 1)
+				Stops[1] = 1;
+			else if(topHeap == 2)
+				Stops[2] = 1;
+			else if(topHeap == 3)
+				Stops[3] = 1;
+		 end
 	 end
 	
 	 if(Delay == 1)//Interrupcion de Abrir o Cerrar Puertas
@@ -115,7 +119,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -140,7 +145,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -178,7 +184,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -203,7 +210,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -218,7 +226,7 @@ module memory_manager(
 							end
 						else								//La solicitud NO coincide con el proceso
 							begin
-							Heap[0] = RegFloor2;		//NOTA CAMBIAR A COUNTER
+							Heap[Counter] = RegFloor2;		//NOTA CAMBIAR A COUNTER
 							Counter = Counter + 1;
 							reg_UDRequest = UDIn;
 							end
@@ -241,7 +249,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -266,7 +275,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -304,7 +314,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -330,7 +341,8 @@ module memory_manager(
 								begin
 									tempH = 0;
 									Heap[index] = tempH;
-									Counter = Counter - 1;
+									if(Counter > 0)
+										Counter = Counter - 1;
 								end
 							end
 							for (index=0; index < 8; index = index + 1)//Defrag de la memoria
@@ -358,6 +370,7 @@ module memory_manager(
 	 
     if(FRDelay == 1)//Nuevo Request de Destino de Piso
 		begin
+		reg_OCRequest = 0;
 		if(FloorRequest == 0)
 			Stops[0] = 1;
 		else if(FloorRequest == 1)
@@ -367,7 +380,7 @@ module memory_manager(
 		else if(FloorRequest == 3)
 			Stops[3] = 1;
 		reg_UDRequest = UDIn;
-		reg_OCRequest = 0;
+		
 		end
 	 end//end always
 
