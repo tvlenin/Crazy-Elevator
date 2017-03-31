@@ -38,7 +38,7 @@ always@(posedge clk )begin
 		pulse = 0;
 		sec = 0;
 	end
-	if (pulse != 1 )
+	else if (pulse != 1 )
 		pulse = pulse +1;
 	else begin
 		sec = sec + 1;

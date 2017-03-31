@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -41,7 +42,19 @@ module Interface(
     );
 	 
 	 
-	 
+wire wOCRequest;
+wire wUDRequest;
+wire wFRDelay;
+wire wDelay;
+wire [1:0] wSolicitudPiso;
+wire [1:0] wPisoActual;
+wire wSubiendoBajando;
+
+wire wStop;
+wire wNoStop;
+
+
+
 wire [1:0]inte_1;
 wire [1:0]inte_2;
 
@@ -51,7 +64,7 @@ wire [3:0] actual_clock_wire;
 wire [2:0] next_stage;
 //hola
 
-up_down_button up_and_down (
+ up_down_button up_and_down (
 	 .clk(Level),
     .btn5(Button5), 
     .switch_u_d(switch1),
@@ -61,24 +74,44 @@ up_down_button up_and_down (
     .up_or_down(inte_2)
     );
 
+memory_manager instance_name (
+    .Floor(inte_1), 
+    .Request(inte_2), 
+    .CurrentFloor(wPisoActual), 
+    .UDIn(wSubiendoBajando), 
+    .FloorRequest(wSolicitudPiso), 
+    .FRDelay(wFRDelay), 
+    .Delay(wDelay), 
+    .OCRequest(wOCRequest), 
+    .UDRequest(wUDRequest), 
+    .exit(exit),
+	 .Stop(wStop),
+	 .NoStopRequest(wNoStop)
+    );
 
 
 F_S_M instance_FSM (
     .clk(clk), 
     .next_stage(next_stage), 
     .reset(reset), 
-    .OC_Request(Button6),
-	 .UD_Request(Button7),
+    .OC_Request(wOCRequest),
+	 .UD_Request(wUDRequest),
     .actual_clock(actual_clock_wire), 
     .reset_clock(reset_wire), 
     .out(Level),
-    .FR_Delay(sevenseg[1]), 
-    .Solicitud_stage(sevenseg[7:5]), 
-    .Delay(sevenseg[2]), 
-    .Actual_Stage(sevenseg[4:3]) , 
-    .UD_Answer(sevenseg[0]) 
+    .FR_Delay(wFRDelay), 
+    .Solicitud_stage(wSolicitudPiso), 
+    .Delay(wDelay), 
+    .Actual_Stage(wPisoActual) , 
+    .UD_Answer(wSubiendoBajando),
+	 .STOP(wStop),
+	 .NO_STOP(wNoStop)
     );
- 
+	 
+	 
+	 
+	 
+
 clock_sim instance_clock(
     .reseta(reset_wire), 
     .clk(clk), 
@@ -94,6 +127,10 @@ next_stage instance_stage(
     .n_stage(next_stage),
 	 .exit(exit)
     );
+
+
+
+
 
 
 

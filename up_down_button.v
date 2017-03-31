@@ -26,7 +26,8 @@ module up_down_button(
 	 input switchMSB,
     input switch_u_d,
     output [1:0] up_or_down,
-	 output [1:0] actualStage
+	 output [1:0] actualStage,
+	 output exit
     );
 	 
 	 
@@ -48,12 +49,12 @@ module up_down_button(
 				reg_out[1] = 1;
 				reg_out[0] = 1;
 			end
-		else if ((reg_btn5 == 1) & (reg_switch == 0))//Condicion para bajar 01
+		else if ((reg_btn5 == 1) & (reg_switch == 0))//Condicion para bajar 10
 			begin
 				reg_actual_stage[1] = reg_switchMSB;///////
 				reg_actual_stage[0] = reg_switchLSB;
-				reg_out[1] = 0;
-				reg_out[0] = 1;
+				reg_out[1] = 1;
+				reg_out[0] = 0;
 			end
 		else 
 			begin // Permanece donde esta 00
