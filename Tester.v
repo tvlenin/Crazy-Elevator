@@ -88,97 +88,19 @@ module Tester;
 		Button7 = 0;
 		//test_out = 0;
 
-		// Wait 100 ns for global reset to finish
-		/*#200;
-		reset=1;
-		#2;
-		reset=0;
-		#30;
-		Button6 = 1;
-		#5
-		Button4 = 1;
 		#2
-		Button4 = 0;
-		#3;
-		Button6 = 0;
-		////////////////solicitud para subir del segundo al cuarto
-		#50;
-		Button6 = 1;
-		#5
-		Button4 = 1;
-		#2
-		Button4 = 0;
-		#3;
-		Button6 = 0;
-		////////////////solicitud para subir del tercer al cuarto
-		#41;
-		Button6 = 1;
-		#5
-		Button4 = 1;
-		#5
-		Button4 = 0;
-		#3;
-		Button6 = 0;
-		////////////////solicitud para bajar del cuarto al tercero  
-		#41;
-		Button6 = 1;
-		#5
-		Button1 = 1;
-		#5
-		Button1  = 0;
-		#3;
-		Button6 = 0;
-		#41;////////////////solicitud para bajar del tercero al segundo
-		Button6 = 1;
-		#5
-		Button1 = 1;
-		#5
-		Button1  = 0;
-		#3;
-		Button6 = 0;
-		#41;////////////////solicitud para bajar del segundo al primer piso
-		Button6 = 1;
-		#5
-		Button1 = 1;
-		#5
-		Button1  = 0;
-		#3;
-		Button6 = 0;
-		#45;
-		Button6 = 1;
-	*/
-	#2
-	reset = 1;
-	#3
-	reset = 0;
-	#5;
-	switch1 = 1;
-	Button5 = 1;
-	switch2 = 1;
-	switch3 = 1;
-	#3
-	Button5 = 0;
-	#225;
-	switch1 = 0;
-	Button5 = 1;
-	switch2 = 1;
-	switch3 = 0;
-	#3
-	Button5 = 0;
-	#80;
-	switch1 = 1;
-	Button5 = 1;
-	switch2 = 0;
-	switch3 = 0;
-	#3
-	Button5 = 0;
-	#115;
-	Button4 = 1;
-	#3;
-	Button4 = 0;
-
+		reset = 1;
+		#3
+		reset = 0;
+		
+		#10;
+		switch1 = 0;
+		Button5 = 1;
+		switch2 = 1;
+		switch3 = 1;
+		#3
+		Button5 = 0;
 	
-
 	end 
       
 endmodule

@@ -1,59 +1,53 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    11:10:34 03/26/2017 
-// Design Name: 
-// Module Name:    F_S_M 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
+
 module F_S_M(
-input clk,
-input [2:0]next_stage,
-input reset,
-input OC_Request,
-input UD_Request,
-input [3:0]actual_clock,
-input NO_STOP,
-output reset_clock,
-output reg [1:0] out,
-output FR_Delay,
-output [2:0] Solicitud_stage,
-output Delay,
-output [1:0]Actual_Stage,
-output UD_Answer,
-output STOP
-
-
+	input clk,
+	input [2:0]next_stage,
+	input reset,
+	input OC_Request,
+	input UD_Request,
+	input [3:0]actual_clock,
+	input NO_STOP,
+	input DoneDelay,
+	input DoneResetClock,
+	output reset_clock,
+	output reg [1:0] out,
+	output FR_Delay,
+	output [2:0] Solicitud_stage,
+	output Delay,
+	output [1:0]Actual_Stage,
+	output UD_Answer,
+	output STOP
 );
 reg [1:0]first_time;
 reg time_flag;
 reg c_reset;
 reg [2:0] state;
 reg reg_stop;
-reg reg_UDAnswer;///////////////UD_Answer
-reg [1:0] reg_ActualStage;///////Actual_Stage
-reg reg_Delay;//////////////////Delay
-reg reg_FRDelay;////////////////FR_Delay
-reg [2:0]reg_SolicitudStage;/////////Solicitud_stage
+reg reg_UDAnswer;					//UD_Answer
+reg [1:0] reg_ActualStage;		//Actual_Stage
+reg reg_Delay;						//Delay
+reg reg_FRDelay;					//FR_Delay
+reg [2:0]reg_SolicitudStage;	//Solicitud_stage
 
 
 parameter SA = 0,SB = 1,SC = 2,SD = 3,SE = 4,SF = 5,SS=6;
 
+initial begin
+	first_time = 0;
+	reg_FRDelay = 0 ;
+	reg_SolicitudStage = 0;
+	reg_ActualStage = 0;
+	reg_UDAnswer = 0;
+	reg_Delay = 0 ;
+	time_flag = 0;
+	reg_stop = 1;
+	state <= SS;
+end //if reset
+
 always @ (posedge clk or posedge reset) begin
-	if(reset)begin
-		state <= SS;
+//always @ (posedge clk) begin
+	if(reset==1)begin
 		first_time = 0;
 		reg_FRDelay = 0 ;
 		reg_SolicitudStage = 0;
@@ -61,24 +55,31 @@ always @ (posedge clk or posedge reset) begin
 		reg_UDAnswer = 0;
 		reg_Delay = 0 ;
 		time_flag = 0;
-		reg_stop = 1; 
+		reg_stop = 1;
+		state <= SS;
 	end //if reset
-	else
+	
+	else begin
+		if(DoneDelay == 1)begin			//Verificar fin del controlador
+			reg_Delay = 0;
+		end
+		if(DoneResetClock == 1)begin 	//Verificar fin del clock
+			c_reset = 0;
+		end
+		
 		case(state)
 			SA:				
-				if(first_time == 0)begin // primera vez del ascensor
+				if(first_time == 0)begin //Primera Ejecución del Ascensor
 					reg_UDAnswer = 1;
 					first_time=2;
 					time_flag =0;
 					reg_ActualStage = 0;
 					reg_Delay = 1;
-					#2;
-					//reg_UDAnswer = 0;
-					reg_Delay = 0;
+					
 				end//if(first_time == 0)
 				
 				else if(OC_Request == 1 && time_flag == 0 )begin
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -86,7 +87,7 @@ always @ (posedge clk or posedge reset) begin
 					end //if(time_flag ==0)
 					
 				end //if(OC_Request == 1)
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
 						#3 ;
@@ -95,28 +96,26 @@ always @ (posedge clk or posedge reset) begin
 						time_flag = 0;
 				end //else if(actual_clock)
 				
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin //Cuando se cierran las puertas
+					if (time_flag == 0) begin	//Comienza a subir durante 10s
+						c_reset = 1;				//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 2 subiendo
+					else if(actual_clock >= 10)begin //Pasar al siguiente estado 
 						first_time = 0;
+						c_reset = 1;
 						state <= SB;
 					end
 					
 				end//else if(OC_Request == 0)
 				
-				
-				
-				else if(actual_clock > 10)begin
+				else if(actual_clock >= 10)begin
 					first_time = 0;
 					reg_stop = 1;
+					c_reset = 1;
 					state <= SS;
 				end
+				
 			SB:
 				if(first_time == 1)begin
 					first_time = 2;
@@ -124,19 +123,19 @@ always @ (posedge clk or posedge reset) begin
 					//no hago nada solo no entro al reset inicial
 				end
 				
-				else if(first_time == 0)begin// acaba de llegar al piso 2 y avisa al controlador
+				else if(first_time == 0)begin//Llega al piso 2, notifica al controlador
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 1;
 					reg_UDAnswer = 1;
 					reg_Delay = 1;
-					#3;
-					reg_Delay = 0;
+					//#3;
+					//reg_Delay = 0;
 				
 				end//if(first_time == 0)
 				
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -145,7 +144,7 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 					if (next_stage[1:0] < reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
@@ -166,30 +165,25 @@ always @ (posedge clk or posedge reset) begin
 				end //else if(actual_clock)
 							
 
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin		//Cuando se cierran las puertas
+					if (time_flag == 0) begin		//Comienza a subir durante 10s
+						c_reset = 1;					//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 3 subiendo
+					else if(actual_clock >= 10)begin	//Pasar al siguiente estado
 						first_time = 0;
+						c_reset = 1;
 						state <= SD;
 					end
 					
 				end//else if(OC_Request == 0)
-				else if(actual_clock > 10)begin
-									
+				else if(actual_clock >= 10)begin
+						c_reset = 1;				
 						first_time = 0;
 						reg_stop = 1;
 						state <= SS;
 					
 				end
-				
-				
-				
 				
 				//state <= SA;
 			SC:
@@ -197,7 +191,7 @@ always @ (posedge clk or posedge reset) begin
 					first_time = 2;
 					//no hago nada solo no entro al reset inicial
 				end
-				else if(first_time == 0)begin// acaba de llegar al piso 2 y avisa al controlador
+				else if(first_time == 0)begin //Llega al piso 2, notifica al controlador
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 1;
@@ -205,11 +199,11 @@ always @ (posedge clk or posedge reset) begin
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
-					reg_Delay = 0;
+					//reg_Delay = 0;
 				
 				end//if(first_time == 0)begin
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -218,7 +212,7 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 					
 					if (next_stage[1:0] > reg_ActualStage)begin
 						reg_SolicitudStage = next_stage;
@@ -226,7 +220,7 @@ always @ (posedge clk or posedge reset) begin
 						#2 ;
 						reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
-						first_time = 1;////******************************************************
+						//first_time = 1;////******************************************************
 						state <= SB;
 					end
 					else begin
@@ -240,21 +234,20 @@ always @ (posedge clk or posedge reset) begin
 				end //else if(actual_clock)
 							
 
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin		//Cuando se cierran las puertas
+					if (time_flag == 0) begin		//Comienza a subir durante 10s
+						c_reset = 1;					//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 3 subiendo
+					else if(actual_clock >= 10)begin		//Pasar al siguiente estado
+						c_reset = 1;
 						first_time = 0;
 						state <= SA;
 					end
 				end//else if(OC_Request == 0)
 				
-				else if(actual_clock > 10)begin
+				else if(actual_clock >= 10)begin
+					c_reset = 1;
 					first_time = 0;
 					reg_stop = 1;
 					state <= SS;
@@ -268,7 +261,7 @@ always @ (posedge clk or posedge reset) begin
 					
 					first_time = 2;
 				end
-				else if(first_time == 0)begin// acaba de llegar al piso 3 y avisa al controlador
+				else if(first_time == 0)begin //Llega al piso 3, notifica al controlador
 					
 					first_time = 2;
 					time_flag = 0;
@@ -277,13 +270,13 @@ always @ (posedge clk or posedge reset) begin
 					reg_UDAnswer = 1;
 					reg_Delay = 1;
 					#3;
-					reg_Delay = 0;
+					//reg_Delay = 0;
 				
 				end//if(first_time == 0)begin
 
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
 					
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -292,7 +285,7 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 					if (next_stage[1:0] < reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
@@ -313,25 +306,22 @@ always @ (posedge clk or posedge reset) begin
 				end //else if(actual_clock)
 							
 
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin		//Cuando se cierran las puertas
+					if (time_flag == 0) begin		//Comienza a subir durante 10s
+						c_reset = 1;					//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 3 subiendo
+					else if(actual_clock >= 10)begin		//Pasar al siguiente estado
+						c_reset = 1;
 						first_time = 0;
 						state <= SF;
-						
 					end
 				end//else if(OC_Request == 0)
-				else if(actual_clock > 10)begin
+				else if(actual_clock >= 10)begin
+					c_reset = 1;
 					first_time = 0;
 					reg_stop = 1;
 					state <= SS;
-					
 				end
 				
 				
@@ -341,20 +331,20 @@ always @ (posedge clk or posedge reset) begin
 
 					//no hago nada solo no entro al reset inicial
 				end
-				else if(first_time == 0)begin// acaba de llegar al piso 2 y avisa al controlador
+				else if(first_time == 0)begin//Llega al piso 3, notifica al controlador
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 2;
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
-					reg_Delay = 0;
+					//reg_Delay = 0;
 				
 				end//if(first_time == 0)begin
 					
 				
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -362,7 +352,7 @@ always @ (posedge clk or posedge reset) begin
 					end //if(time_flag ==0)
 					
 				end //if(OC_Request == 1)
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 					if (next_stage > reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
@@ -383,28 +373,26 @@ always @ (posedge clk or posedge reset) begin
 				end //else if(actual_clock)
 							
 
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin		//Cuando se cierran las puertas
+					if (time_flag == 0) begin		//Comienza a subir durante 10s
+						c_reset = 1;					//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 3 subiendo
+					else if(actual_clock >= 10)begin		//Pasar al siguiente estado
+						c_reset = 1;
 						first_time = 0;
 						state <= SC;
 					end
 				end//else if(OC_Request == 0)
-				else if(actual_clock > 10)begin
+				else if(actual_clock >= 10)begin
+					c_reset = 1;
 					first_time = 0;
 					reg_stop = 1;
 					state <= SS;
-					
 				end
 			
 			SF:
-				if(first_time == 0)begin// acaba de llegar al piso 2 y avisa al controlador
+				if(first_time == 0)begin //Llega al piso 4, notifica al controlador
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 3;
@@ -412,12 +400,12 @@ always @ (posedge clk or posedge reset) begin
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
-					reg_Delay = 0;
+					//reg_Delay = 0;
 				
 				end//if(first_time == 0)begin
 				
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -426,7 +414,7 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock <= 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 ) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
 						#2 ;
@@ -436,32 +424,29 @@ always @ (posedge clk or posedge reset) begin
 				end //else if(actual_clock)
 							
 
-				else if(OC_Request == 0)begin  /////cuando se cierran las puertas
-					if (time_flag == 0) begin///comienzo a subir durante 10 segundos
-						c_reset = 1;#3;c_reset = 0; //Inicia el contador de 10 segundos
+				else if(OC_Request == 0)begin		//Cuando se cierran las puertas
+					if (time_flag == 0) begin		//Comienza a subir durante 10s
+						c_reset = 1;					//Inicia el contador de 10 segundos
 						time_flag = 1;
 					end
-					else if (actual_clock <= 10) begin // durante esos 10 segundos 7s dice que voy subiendo
-						////LOGICA PARA EL SEVENSEG
-					end
-					else if(actual_clock > 10)begin// cuando pasan los diez segundos paso al siguiente estado, piso 3 subiendo
+					else if(actual_clock >= 10)begin		//Pasar al siguiente estado
+						c_reset = 1;
 						first_time = 0;
 						state <= SE;
-						
 					end
 				end//else if(OC_Request == 0)
-				else if(actual_clock > 10)begin
+				else if(actual_clock >= 10)begin
+					c_reset = 1;
 					first_time = 0;
 					reg_stop = 1;
 					state <= SS;
-					
 				end
 				
 				
 			SS:
 				if(NO_STOP == 1)begin
 					reg_stop = 0;
-					first_time = 1;/////////////////////////*************************************OJO
+					first_time = 1;//OJO
 					case (reg_ActualStage)
 						0:
 							state <= SA;
@@ -479,10 +464,8 @@ always @ (posedge clk or posedge reset) begin
 							state <= SF;
 					endcase
 				end
-
-				
 		endcase
-			
+	end
 
 end//always @ (posedge clk or posedge reset) begin 
 

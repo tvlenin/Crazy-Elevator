@@ -21,7 +21,7 @@ module segment_controller(
 	reg [4:0]segData;
 	
 	always @ (posedge clk)
-		count <= count + 1;
+		count <= count + 1'd1;
 		always @ (*)begin
 			case(count[N-1:N-2])
 			
@@ -71,7 +71,7 @@ module segment_controller(
 		8 : out_reg = 8'b11000001; //Bajando : b
 		9 : out_reg = 8'b01001001; //Subiendo : S
 		
-		default : out_reg = 8'b111111111;
+		default : out_reg = 8'b11111111;
 	endcase
 	end
 	

@@ -34,19 +34,23 @@ module Interface(
 	 input Button6,
     input Button7,
     
-	 output [7:0] sevenseg,
+	 output [3:0] seg_selector,
+	 output [8:0] sevenseg,
 	 output [1:0] test_out,
 	 output [1:0] Level,
 	 output [3:0] reloj,
+	 output point,
+	 output [3:0]outStops,
 	 output exit
     );
 	 
-	 
+wire wDoneResetClock;
+wire wDoneDelay;
 wire wOCRequest;
 wire wUDRequest;
 wire wFRDelay;
 wire wDelay;
-wire [1:0] wSolicitudPiso;
+wire [2:0] wSolicitudPiso;
 wire [1:0] wPisoActual;
 wire wSubiendoBajando;
 
@@ -75,18 +79,20 @@ wire [2:0] next_stage;
     );
 
 memory_manager instance_name (
+	 .clk(clk), 
     .Floor(inte_1), 
     .Request(inte_2), 
     .CurrentFloor(wPisoActual), 
     .UDIn(wSubiendoBajando), 
-    .FloorRequest(wSolicitudPiso), 
+    .FloorRequest(wSolicitudPiso[1:0]), 
     .FRDelay(wFRDelay), 
     .Delay(wDelay), 
     .OCRequest(wOCRequest), 
     .UDRequest(wUDRequest), 
     .exit(exit),
 	 .Stop(wStop),
-	 .NoStopRequest(wNoStop)
+	 .NoStopRequest(wNoStop),
+	 .DoneDelay(wDoneDelay)
     );
 
 
@@ -105,18 +111,18 @@ F_S_M instance_FSM (
     .Actual_Stage(wPisoActual) , 
     .UD_Answer(wSubiendoBajando),
 	 .STOP(wStop),
-	 .NO_STOP(wNoStop)
+	 .NO_STOP(wNoStop),
+	 .DoneDelay(wDoneDelay),
+	 .DoneResetClock(wDoneResetClock)
     );
-	 
-	 
-	 
 	 
 
 clock_sim instance_clock(
     .reseta(reset_wire), 
     .clk(clk), 
     .timeout(actual_clock_wire),
-	 .exit(reloj)
+	 .exit(exit),
+	 .DoneResetClock(wDoneResetClock)
     );
 
 next_stage instance_stage(
@@ -128,17 +134,16 @@ next_stage instance_stage(
 	 .exit(exit)
     );
 
+segment_controller instance_segment (
+    .clk(clk), 
+    .currentFloor(wPisoActual), 
+    .UD_state(wSubiendoBajando), 
+    .OC_state(wOCRequest), 
+    .seg_selector(seg_selector), 
+    .segments(sevenseg)
+    );
 
-
-
-
-
-
-
-
-	
-
-
-
+assign point = wDelay;
+assign outStops = actual_clock_wire;
 
 endmodule
