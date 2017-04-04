@@ -2,6 +2,7 @@
 
 module memory_manager(
 	 input clk,
+	 input reset,
     input [1:0] Floor,			//Piso de Solicitud
     input [1:0] Request,		//Solicitud MSB: Si(1) No(0) LSB: Sube(1) Baja(0)
     input [1:0] CurrentFloor,	//Piso Actual
@@ -43,8 +44,20 @@ module memory_manager(
 	 reg_DoneNextStageDelay = 0;
 	 end
 	 
-	 always@(posedge clk )begin
+	 always@(posedge clk or posedge reset)begin
 	 
+	 if(reset == 1)begin
+		Stops[0] = 0;
+		Stops[1] = 0;
+		reg_OCRequest = 0;
+		reg_UDRequest = 0;
+		reg_NoStopRequest = 0;
+		reg_DoneDelay = 0;
+		reg_DoneFRDelay = 0;
+		reg_DoneNextStageDelay = 0;
+	 end
+	 
+	 else begin
 	 if(NextStageDelay == 1)//Verifica que ya no está presionando un boton de ir a Piso
 		reg_DoneNextStageDelay = 0;
 	 
@@ -118,58 +131,64 @@ module memory_manager(
 	 else
 		reg_NoStopRequest = 0;
 	
-	 if(Delay == 1)//Interrupcion de Abrir o Cerrar Puertas
-		begin
-			if(CurrentFloor == 0)begin				//Piso 1
-				if(Stops[0][0] == 1)begin				//Hay que parar en este piso
-					reg_OCRequest = 1;
-					Stops[0][0] = 0;
-				end
-				else
-					reg_UDRequest = UDIn;
+	 if(Delay == 1)begin//Interrupcion de Abrir o Cerrar Puertas
+		if(CurrentFloor == 0)begin				//Piso 1
+			if(Stops[0][0] == 1)begin				//Hay que parar en este piso
+				reg_OCRequest = 1;
+				Stops[0][0] = 0;
+				reg_DoneDelay = 1;
 			end
-			else if(CurrentFloor == 1)begin		//Piso 2
-				if(Stops[reg_UDRequest][1] == 1)begin				//Hay que parar en este piso
-					reg_OCRequest = 1;
-					Stops[reg_UDRequest][1] = 0;
-				end
-				else if(Stops[0][1] && Stops[1][2] == 0 && Stops[1][3] == 0)begin
-					reg_OCRequest = 1;
-					Stops[1][1] = 0;
-				end
-				else if(Stops[1][1] && Stops[0][0] == 0)begin
-					reg_OCRequest = 1;
-					Stops[0][1] = 0;
-				end
-				else
-					reg_UDRequest = UDIn;
+			//else
+				//reg_UDRequest = UDIn;
+		end
+		else if(CurrentFloor == 1)begin		//Piso 2
+			if(Stops[reg_UDRequest][1] == 1)begin				//Hay que parar en este piso
+				reg_OCRequest = 1;
+				Stops[reg_UDRequest][1] = 0;
+				reg_DoneDelay = 1;
 			end
-			else if(CurrentFloor == 2)begin		//Piso 3
-				if(Stops[reg_UDRequest][2] == 1)begin//Hay que parar en este piso
-					reg_OCRequest = 1;
-					Stops[reg_UDRequest][2] = 0;
-				end
-				else if(Stops[1][2] == 1 && Stops[1][3] == 0)begin
-					reg_OCRequest = 1;
-					Stops[0][2] = 0;
-				end
-				else if(Stops[0][2] == 1 && Stops[0][0] == 0 && Stops[0][1] == 0)begin
-					reg_OCRequest = 1;
-					Stops[1][2] = 0;
-				end
-				else
-					reg_UDRequest = UDIn;
+			else if(Stops[0][1] && Stops[1][2] == 0 && Stops[1][3] == 0)begin
+				reg_OCRequest = 1;
+				Stops[1][1] = 0;
+				reg_DoneDelay = 1;
 			end
-			else if(CurrentFloor == 3)begin		//Piso 4
-				if(Stops[1][3] == 1)begin			//Hay que parar en este piso
-					reg_OCRequest = 1;
-					Stops[1][3] = 0;
-				end
-				else
-					reg_UDRequest = UDIn;
+			else if(Stops[1][1] && Stops[0][0] == 0)begin
+				reg_OCRequest = 1;
+				Stops[0][1] = 0;
+				reg_DoneDelay = 1;
 			end
-		reg_DoneDelay=1;
-		end//end current floor ifs
+			//else
+				//reg_UDRequest = UDIn;
+		end
+		else if(CurrentFloor == 2)begin		//Piso 3
+			if(Stops[reg_UDRequest][2] == 1)begin//Hay que parar en este piso
+				reg_OCRequest = 1;
+				Stops[reg_UDRequest][2] = 0;
+				reg_DoneDelay = 1;
+			end
+			else if(Stops[1][2] == 1 && Stops[1][3] == 0)begin
+				reg_OCRequest = 1;
+				Stops[0][2] = 0;
+				reg_DoneDelay = 1;
+			end
+			else if(Stops[0][2] == 1 && Stops[0][0] == 0 && Stops[0][1] == 0)begin
+				reg_OCRequest = 1;
+				Stops[1][2] = 0;
+				reg_DoneDelay = 1;
+			end
+			//else
+				//reg_UDRequest = UDIn;
+		end
+		else if(CurrentFloor == 3)begin		//Piso 4
+			if(Stops[1][3] == 1)begin			//Hay que parar en este piso
+				reg_OCRequest = 1;
+				Stops[1][3] = 0;
+				reg_DoneDelay = 1;
+			end
+			//else
+				//reg_UDRequest = UDIn;
+		end
+	end//end current floor ifs
 	 
 	 
     if(FRDelay == 1)begin//Nuevo Request de Destino de Piso
@@ -223,7 +242,7 @@ module memory_manager(
 			reg_DoneFRDelay = 1;
 		end
 	end
-		
+	end	
 	end//end always
 
 assign DoneNextStageDelay = reg_DoneNextStageDelay;
@@ -232,6 +251,6 @@ assign DoneDelay = reg_DoneDelay;
 assign UDRequest = reg_UDRequest;
 assign OCRequest = reg_OCRequest;
 assign NoStopRequest = reg_NoStopRequest;
-assign TestStopsUP = Stops[1][3:1];
+assign TestStopsUP = Stops[1];
 assign TestStopsDW = Stops[0];
 endmodule

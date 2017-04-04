@@ -6,6 +6,7 @@ module segment_controller(
 	 input UD_state,
 	 input OC_state,
 	 input Stop,
+	 input pClockTime,
 	 output [3:0] seg_selector,
     output [8:0] segments
     );
@@ -37,7 +38,10 @@ module segment_controller(
 				end
 			2'b01:	
 				begin
-					segData <= 4'd6;
+					if(pClockTime == 0)
+						segData <= 4'd6;
+					else
+						segData <= 4'd11;
 					sel_reg = 4'b1101;
 				end
 			2'b10:	
@@ -77,6 +81,7 @@ module segment_controller(
 		8 : out_reg = 8'b11000001; //Bajando : b
 		9 : out_reg = 8'b01001001; //Subiendo : S
 		10: out_reg = 8'b11111101; // - En espera
+		11: out_reg = 8'b00110000; // - En espera
 		default : out_reg = 8'b11111111;
 	endcase
 	end

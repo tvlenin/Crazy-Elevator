@@ -14,8 +14,8 @@ module Interface(
     input Button5,
 	 output [3:0] seg_selector,
 	 output [8:0] sevenseg,
-	 output [3:0] outStops,
-	 output [2:0] outRequest
+	 output [3:0] outRegDW,
+	 output [3:0] outRegUP
     );
 
 wire w1DoneNSDelay;
@@ -48,6 +48,7 @@ up_down_button up_and_down (
 
 memory_manager instance_name (
 	 .clk(clk), 
+	 .reset(reset),
     .Floor(inte_1), 
     .Request(inte_2), 
     .CurrentFloor(wPisoActual), 
@@ -63,9 +64,9 @@ memory_manager instance_name (
 	 .DoneFRDelay(wDoneFRDelay),
 	 .NextStageDelay(w1DoneNSDelay),//Input
 	 .DoneNextStageDelay(w2DoneNSDelay),//Output
-	 .TestStopsUP(outRequest),
-	 //.TestStopsDW(outStops)
-	 .TestStopsDW()
+	 .TestStopsUP(outRegUP),
+	 .TestStopsDW(outRegDW)
+	 //.TestStopsDW()
     );
 
 
@@ -114,9 +115,8 @@ segment_controller instance_segment (
     .OC_state(wOCRequest), 
     .seg_selector(seg_selector), 
     .segments(sevenseg),
-	 .Stop(wStop)
+	 .Stop(wStop),
+	 .pClockTime(actual_clock_wire[0])
     );
-
-assign outStops = actual_clock_wire;
 
 endmodule
