@@ -9,6 +9,7 @@ module F_S_M(
 	input [3:0]actual_clock,
 	input NO_STOP,
 	input DoneDelay,
+	input DoneFRDelay,
 	input DoneResetClock,
 	output reset_clock,
 	output reg [1:0] out,
@@ -60,16 +61,21 @@ always @ (posedge clk or posedge reset) begin
 	end //if reset
 	
 	else begin
-		if(DoneDelay == 1)begin			//Verificar fin del controlador
+		if(DoneDelay == 1)			//Verificar fin del controlador
 			reg_Delay = 0;
-		end
-		if(DoneResetClock == 1)begin 	//Verificar fin del clock
+		if(DoneResetClock == 1) 	//Verificar fin del clock
 			c_reset = 0;
-		end
+		if(DoneFRDelay == 1)
+			reg_FRDelay = 0;
 		
 		case(state)
-			SA:				
-				if(first_time == 0)begin //Primera Ejecución del Ascensor
+			SA:
+				if(first_time == 1)begin
+					first_time = 2;
+					c_reset = 1;
+					time_flag = 0;
+				end
+				else if(first_time == 0)begin //Primera Ejecución del Ascensor
 					reg_UDAnswer = 1;
 					first_time=2;
 					time_flag =0;
@@ -87,12 +93,12 @@ always @ (posedge clk or posedge reset) begin
 					end //if(time_flag ==0)
 					
 				end //if(OC_Request == 1)
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#3 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#3 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						time_flag = 0;
 				end //else if(actual_clock)
 				
@@ -119,7 +125,8 @@ always @ (posedge clk or posedge reset) begin
 			SB:
 				if(first_time == 1)begin
 					first_time = 2;
-					
+					c_reset = 1;
+					time_flag = 0;
 					//no hago nada solo no entro al reset inicial
 				end
 				
@@ -144,21 +151,21 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 					if (next_stage[1:0] < reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						state <= SC;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
 						//time_flag = 0;
 					end 
@@ -189,6 +196,8 @@ always @ (posedge clk or posedge reset) begin
 			SC:
 				if(first_time == 1)begin
 					first_time = 2;
+					c_reset = 1;
+					time_flag = 0;
 					//no hago nada solo no entro al reset inicial
 				end
 				else if(first_time == 0)begin //Llega al piso 2, notifica al controlador
@@ -212,22 +221,22 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 					
 					if (next_stage[1:0] > reg_ActualStage)begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						//first_time = 1;////******************************************************
 						state <= SB;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
 						//time_flag = 0;
 					end
@@ -257,16 +266,17 @@ always @ (posedge clk or posedge reset) begin
 			SD:
 			
 				if(first_time == 1)begin
-					// paso
-					
 					first_time = 2;
+					c_reset = 1;
+					time_flag = 0;
+					//no hago nada solo no entro al reset inicial
 				end
 				else if(first_time == 0)begin //Llega al piso 3, notifica al controlador
 					
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 2;
-					reg_SolicitudStage = 2;
+					//reg_SolicitudStage = 2;
 					reg_UDAnswer = 1;
 					reg_Delay = 1;
 					#3;
@@ -285,21 +295,21 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 					if (next_stage[1:0] < reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						state <= SE;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
 						//time_flag = 0;
 					end
@@ -328,7 +338,8 @@ always @ (posedge clk or posedge reset) begin
 			SE:
 				if(first_time == 1)begin
 					first_time = 2;			
-
+					c_reset = 1;
+					time_flag = 0;
 					//no hago nada solo no entro al reset inicial
 				end
 				else if(first_time == 0)begin//Llega al piso 3, notifica al controlador
@@ -352,21 +363,21 @@ always @ (posedge clk or posedge reset) begin
 					end //if(time_flag ==0)
 					
 				end //if(OC_Request == 1)
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 					if (next_stage > reg_ActualStage)begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						state <= SD;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
 						//time_flag = 0;
 					end
@@ -392,11 +403,17 @@ always @ (posedge clk or posedge reset) begin
 				end
 			
 			SF:
-				if(first_time == 0)begin //Llega al piso 4, notifica al controlador
+				if(first_time == 1)begin
+					first_time = 2;			
+					c_reset = 1;
+					time_flag = 0;
+					//no hago nada solo no entro al reset inicial
+				end
+				else if(first_time == 0)begin //Llega al piso 4, notifica al controlador
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 3;
-					reg_SolicitudStage = 3;
+					//reg_SolicitudStage = 3;
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
@@ -414,12 +431,12 @@ always @ (posedge clk or posedge reset) begin
 					
 				end //if(OC_Request == 1)
 				
-				else if(actual_clock < 10 && next_stage != 0 ) begin
+				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						#2 ;
-						reg_FRDelay = 0;
-						reg_SolicitudStage = 0;
+						//#2 ;
+						//reg_FRDelay = 0;
+						//reg_SolicitudStage = 0;
 						//time_flag = 0;
 				end //else if(actual_clock)
 							

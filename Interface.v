@@ -1,27 +1,8 @@
 
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    21:51:08 03/14/2017 
-// Design Name: 
-// Module Name:    Interface 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
+
 module Interface(
 	 input clk,
-	 input enable,
 	 input reset,
 	 input switch1,
 	 input switch2,
@@ -31,8 +12,6 @@ module Interface(
     input Button3,
     input Button4,
     input Button5,
-	 input Button6,
-    input Button7,
     
 	 output [3:0] seg_selector,
 	 output [8:0] sevenseg,
@@ -41,9 +20,13 @@ module Interface(
 	 output [3:0] reloj,
 	 output point,
 	 output [3:0]outStops,
+	 output [2:0]outRequest,
 	 output exit
     );
-	 
+
+wire w1DoneNSDelay;
+wire w2DoneNSDelay;
+wire wDoneFRDelay;
 wire wDoneResetClock;
 wire wDoneDelay;
 wire wOCRequest;
@@ -57,8 +40,6 @@ wire wSubiendoBajando;
 wire wStop;
 wire wNoStop;
 
-
-
 wire [1:0]inte_1;
 wire [1:0]inte_2;
 
@@ -66,9 +47,8 @@ wire reset_wire;
 wire [3:0] actual_clock_wire;
 
 wire [2:0] next_stage;
-//hola
 
- up_down_button up_and_down (
+up_down_button up_and_down (
 	 .clk(Level),
     .btn5(Button5), 
     .switch_u_d(switch1),
@@ -84,7 +64,8 @@ memory_manager instance_name (
     .Request(inte_2), 
     .CurrentFloor(wPisoActual), 
     .UDIn(wSubiendoBajando), 
-    .FloorRequest(wSolicitudPiso[1:0]), 
+    //.FloorRequest(wSolicitudPiso),
+	 .FloorRequest(next_stage), 
     .FRDelay(wFRDelay), 
     .Delay(wDelay), 
     .OCRequest(wOCRequest), 
@@ -92,7 +73,11 @@ memory_manager instance_name (
     .exit(exit),
 	 .Stop(wStop),
 	 .NoStopRequest(wNoStop),
-	 .DoneDelay(wDoneDelay)
+	 .DoneDelay(wDoneDelay),
+	 .DoneFRDelay(wDoneFRDelay),
+	 .TestStopsUP(outRequest),
+	 .NextStageDelay(w1DoneNSDelay),//Input
+	 .DoneNextStageDelay(w2DoneNSDelay)//Output
     );
 
 
@@ -113,6 +98,7 @@ F_S_M instance_FSM (
 	 .STOP(wStop),
 	 .NO_STOP(wNoStop),
 	 .DoneDelay(wDoneDelay),
+	 .DoneFRDelay(wDoneFRDelay),
 	 .DoneResetClock(wDoneResetClock)
     );
 	 
@@ -126,11 +112,14 @@ clock_sim instance_clock(
     );
 
 next_stage instance_stage(
+	 .clk(clk),
     .btn1(Button1), 
     .btn2(Button2), 
     .btn3(Button3), 
     .btn4(Button4), 
     .n_stage(next_stage),
+	 .DoneNextStage(w2DoneNSDelay),//input
+	 .NextStageDelay(w1DoneNSDelay),//ouput
 	 .exit(exit)
     );
 
@@ -145,5 +134,6 @@ segment_controller instance_segment (
 
 assign point = wDelay;
 assign outStops = actual_clock_wire;
+//assign outRequest = next_stage;
 
 endmodule
