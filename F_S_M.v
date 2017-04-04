@@ -47,7 +47,6 @@ initial begin
 end //if reset
 
 always @ (posedge clk or posedge reset) begin
-//always @ (posedge clk) begin
 	if(reset==1)begin
 		first_time = 0;
 		reg_FRDelay = 0 ;
@@ -65,7 +64,7 @@ always @ (posedge clk or posedge reset) begin
 			reg_Delay = 0;
 		if(DoneResetClock == 1) 	//Verificar fin del clock
 			c_reset = 0;
-		if(DoneFRDelay == 1)
+		if(DoneFRDelay == 1)			//Verificar fin la verificacion de los botones(1-4)
 			reg_FRDelay = 0;
 		
 		case(state)
@@ -96,9 +95,6 @@ always @ (posedge clk or posedge reset) begin
 				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#3 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
 						time_flag = 0;
 				end //else if(actual_clock)
 				
@@ -136,13 +132,11 @@ always @ (posedge clk or posedge reset) begin
 					reg_ActualStage = 1;
 					reg_UDAnswer = 1;
 					reg_Delay = 1;
-					//#3;
-					//reg_Delay = 0;
 				
 				end//if(first_time == 0)
 				
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1; //Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -156,18 +150,12 @@ always @ (posedge clk or posedge reset) begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
 						state <= SC;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
-						//time_flag = 0;
 					end 
 				end //else if(actual_clock)
 							
@@ -208,11 +196,10 @@ always @ (posedge clk or posedge reset) begin
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
-					//reg_Delay = 0;
 				
 				end//if(first_time == 0)begin
 				else if(OC_Request == 1 && time_flag == 0 )begin///si habia una solicitud para subir abre las puertas
-					c_reset = 1;//#3;c_reset = 0; //Inicia el contador de 10 segundos
+					c_reset = 1;//Inicia el contador de 10 segundos
 					
 					if (time_flag == 0) begin
 						time_flag = 1;
@@ -226,19 +213,12 @@ always @ (posedge clk or posedge reset) begin
 					if (next_stage[1:0] > reg_ActualStage)begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
-						//first_time = 1;////******************************************************
 						state <= SB;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
-						//time_flag = 0;
 					end
 				end //else if(actual_clock)
 							
@@ -276,7 +256,6 @@ always @ (posedge clk or posedge reset) begin
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 2;
-					//reg_SolicitudStage = 2;
 					reg_UDAnswer = 1;
 					reg_Delay = 1;
 					#3;
@@ -300,18 +279,12 @@ always @ (posedge clk or posedge reset) begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
 						state <= SE;
 					end
 					else begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
 						reg_SolicitudStage = 0;
-						//time_flag = 0;
 					end
 				end //else if(actual_clock)
 							
@@ -368,9 +341,6 @@ always @ (posedge clk or posedge reset) begin
 						first_time = 0;
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
 						state <= SD;
 					end
 					else begin
@@ -413,7 +383,6 @@ always @ (posedge clk or posedge reset) begin
 					first_time = 2;
 					time_flag = 0;
 					reg_ActualStage = 3;
-					//reg_SolicitudStage = 3;
 					reg_UDAnswer = 0;
 					reg_Delay = 1;
 					#3;
@@ -434,10 +403,6 @@ always @ (posedge clk or posedge reset) begin
 				else if(actual_clock < 10 && next_stage != 0 && OC_Request == 1) begin
 						reg_SolicitudStage = next_stage;
 						reg_FRDelay = 1;
-						//#2 ;
-						//reg_FRDelay = 0;
-						//reg_SolicitudStage = 0;
-						//time_flag = 0;
 				end //else if(actual_clock)
 							
 
