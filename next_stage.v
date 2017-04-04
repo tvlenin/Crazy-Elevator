@@ -8,8 +8,7 @@ module next_stage(
     input btn4,
 	 input DoneNextStage,
 	 output NextStageDelay,
-    output [2:0] n_stage,
-	 output exit
+    output [2:0] n_stage
     );
 	
 	reg reg_NextStageDelay;

@@ -20,14 +20,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module up_down_button(
-	 output [1:0]clk,
     input btn5,
 	 input switchLSB,
 	 input switchMSB,
     input switch_u_d,
     output [1:0] up_or_down,
-	 output [1:0] actualStage,
-	 output exit
+	 output [1:0] actualStage
     );
 	 
 	 

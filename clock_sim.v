@@ -4,9 +4,8 @@ module clock_sim(
 	 input reseta,
 	 input clk,
     output [3:0] timeout,
-	 output DoneResetClock,
-	 output [3:0] exit
-    );
+	 output DoneResetClock
+);
 
 reg DoneReset;
 reg [26:0]pulse;
@@ -38,7 +37,6 @@ always@(posedge clk )begin
 end//always
 
 assign timeout = sec;
-assign exit = sec;
 assign DoneResetClock = DoneReset;
 
 endmodule

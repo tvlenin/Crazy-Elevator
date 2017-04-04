@@ -14,11 +14,11 @@ module memory_manager(
 	 output OCRequest,			//Open or Closed Request
 	 output UDRequest,			//Up or Down Request
 	 output NoStopRequest,
-	 output exit,
 	 output DoneDelay,
 	 output DoneFRDelay,
 	 output DoneNextStageDelay,
-	 output [3:0]TestStopsUP
+	 output [3:0]TestStopsUP,
+	 output [3:0]TestStopsDW
     );
 	 
 	 localparam NCola = 4;
@@ -31,8 +31,6 @@ module memory_manager(
 	 reg [3:0] index;
 	 reg [3:0] Counter;			//Contador de Posicion de Memoria
 	 reg [3:0] Stops[1:0];			//Pisos en los que hay que parar subiendo
-	 //reg [3:0] StopsDW;			//Pisos en los que hay que parar subiendo
-	 
 	 
 	 initial begin
 	 Stops[0] = 0;
@@ -47,53 +45,62 @@ module memory_manager(
 	 
 	 always@(posedge clk )begin
 	 
-	 if(Request[1] == 1)//Interrupción Request en Algun Piso
-		begin
-		reg_NoStopRequest = 0; //Reunicia la maquina
-		if(Floor == 0) begin
-			Stops[0][0] = 1;
-			if(Stop == 1 && CurrentFloor >= 0)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor > 0)
-				reg_UDRequest = 0;
-		end
-		else if(Floor == 1) begin
-			if(Request[0] == 1)
-				Stops[1][1] = 1;
-			else if(Request[0] == 0)
-				Stops[0][1] = 1;
+	 if(NextStageDelay == 1)//Verifica que ya no está presionando un boton de ir a Piso
+		reg_DoneNextStageDelay = 0;
+	 
+	 if(Request[1] == 1)begin//Interrupción Request en Algun Piso
+		reg_NoStopRequest = 0; //Detiene la maquina
+		if(Floor == CurrentFloor)begin
+			reg_OCRequest = 1;
+			reg_UDRequest = UDIn;
 			if(Stop == 1)
 				reg_NoStopRequest = 1; //Reunicia la maquin
-			if(CurrentFloor > 1)
-				reg_UDRequest = 0;
-			else if(CurrentFloor < 1)
-				reg_UDRequest = 1;
 		end
-		else if(Floor == 2)begin
-			if(Request[0] == 1)
-				Stops[1][2] = 1;
-			else if(Request[0] == 0)
-				Stops[0][2] = 1;
-			if(Stop == 1)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor > 2)
-				reg_UDRequest = 0;
-			else if(CurrentFloor < 2)
-				reg_UDRequest = 1;
+		else begin
+			if(Floor == 0) begin
+				Stops[0][0] = 1;
+				if(Stop == 1 && CurrentFloor > 0)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor > 0)
+					reg_UDRequest = 0;
+			end
+			else if(Floor == 1) begin
+				if(Request[0] == 1)
+					Stops[1][1] = 1;
+				else if(Request[0] == 0)
+					Stops[0][1] = 1;
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquin
+				if(CurrentFloor > 1)
+					reg_UDRequest = 0;
+				else if(CurrentFloor < 1)
+					reg_UDRequest = 1;
+			end
+			else if(Floor == 2)begin
+				if(Request[0] == 1)
+					Stops[1][2] = 1;
+				else if(Request[0] == 0)
+					Stops[0][2] = 1;
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor > 2)
+					reg_UDRequest = 0;
+				else if(CurrentFloor < 2)
+					reg_UDRequest = 1;
+			end
+			else if(Floor == 3)begin
+				Stops[1][3] = 1;
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor < 3)
+					reg_UDRequest = 1;
+			end
 		end
-		else if(Floor == 3)begin
-			Stops[1][3] = 1;
-			if(Stop == 1)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor < 3)
-				reg_UDRequest = 1;
-		end
-		end//end bloque ifs
+	end//end bloque ifs
 	
 	 
-	 /*if(Stops == 0)//No hay mas instrucciones que verificar, verificar la cola
-	 begin
-		
+	 /*if(Stops[0] == 0 && Stops[1] == 0)begin//No hay mas instrucciones que verificar
+		reg_NoStopRequest = 0;
 	 end*/
 	
 	
@@ -126,19 +133,35 @@ module memory_manager(
 					reg_OCRequest = 1;
 					Stops[reg_UDRequest][1] = 0;
 				end
-				else
-					reg_UDRequest = UDIn;
-			end
-			else if(CurrentFloor == 2)begin		//Piso 3
-				if(Stops[reg_UDRequest][2] == 1)begin				//Hay que parar en este piso
+				else if(Stops[0][1] && Stops[1][2] == 0 && Stops[1][3] == 0)begin
 					reg_OCRequest = 1;
-					Stops[reg_UDRequest][2] = 0;
+					Stops[1][1] = 0;
+				end
+				else if(Stops[1][1] && Stops[0][0] == 0)begin
+					reg_OCRequest = 1;
+					Stops[0][1] = 0;
 				end
 				else
 					reg_UDRequest = UDIn;
 			end
-			else if(CurrentFloor == 3)begin					//Piso 4
-				if(Stops[1][3] == 1)begin					//Hay que parar en este piso
+			else if(CurrentFloor == 2)begin		//Piso 3
+				if(Stops[reg_UDRequest][2] == 1)begin//Hay que parar en este piso
+					reg_OCRequest = 1;
+					Stops[reg_UDRequest][2] = 0;
+				end
+				else if(Stops[1][2] == 1 && Stops[1][3] == 0)begin
+					reg_OCRequest = 1;
+					Stops[0][2] = 0;
+				end
+				else if(Stops[0][2] == 1 && Stops[0][0] == 0 && Stops[0][1] == 0)begin
+					reg_OCRequest = 1;
+					Stops[1][2] = 0;
+				end
+				else
+					reg_UDRequest = UDIn;
+			end
+			else if(CurrentFloor == 3)begin		//Piso 4
+				if(Stops[1][3] == 1)begin			//Hay que parar en este piso
 					reg_OCRequest = 1;
 					Stops[1][3] = 0;
 				end
@@ -148,55 +171,57 @@ module memory_manager(
 		reg_DoneDelay=1;
 		end//end current floor ifs
 	 
-	 if(NextStageDelay == 1)
-		reg_DoneNextStageDelay = 0;
+	 
     if(FRDelay == 1)begin//Nuevo Request de Destino de Piso
-		
-		if(FloorRequest == 4)begin
-			
-			if(Stop == 1 && CurrentFloor >= 0)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor > 0)begin
-				Stops[0][0] = 1;
-				reg_UDRequest = 0;
-			end
+		if(FloorRequest-4'd4 == CurrentFloor)begin
+			reg_DoneNextStageDelay = 1;
+			reg_DoneFRDelay = 1;
 		end
-		else if(FloorRequest == 5)begin
-			if(Stop == 1)
-				reg_NoStopRequest = 1; //Reunicia la maquin
-			if(CurrentFloor > 1)begin
-				Stops[0][1] = 1;
-				reg_UDRequest = 0;
+		else begin
+			if(FloorRequest == 4)begin
+				if(Stop == 1 && CurrentFloor >= 0)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor > 0)begin
+					Stops[0][0] = 1;
+					reg_UDRequest = 0;
+				end
 			end
-			else if(CurrentFloor < 1)begin
-				Stops[1][1] = 1;
-				reg_UDRequest = 1;
+			else if(FloorRequest == 5)begin
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquin
+				if(CurrentFloor > 1)begin
+					Stops[0][1] = 1;
+					reg_UDRequest = 0;
+				end
+				else if(CurrentFloor < 1)begin
+					Stops[1][1] = 1;
+					reg_UDRequest = 1;
+				end
 			end
+			else if(FloorRequest == 6)begin
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor > 2)begin
+					Stops[0][2] = 1;
+					reg_UDRequest = 0;
+				end
+				else if(CurrentFloor < 2)begin
+					Stops[1][2] = 1;
+					reg_UDRequest = 1;
+				end
+			end
+			else if(FloorRequest == 7)begin
+				if(Stop == 1)
+					reg_NoStopRequest = 1; //Reunicia la maquina
+				if(CurrentFloor < 3)begin
+					Stops[1][3] = 1;
+					reg_UDRequest = 1;
+				end
+			end
+			reg_OCRequest = 0;
+			reg_DoneNextStageDelay = 1;
+			reg_DoneFRDelay = 1;
 		end
-		else if(FloorRequest == 6)begin
-			if(Stop == 1)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor > 2)begin
-				Stops[0][2] = 1;
-				reg_UDRequest = 0;
-			end
-			else if(CurrentFloor < 2)begin
-				Stops[1][2] = 1;
-				reg_UDRequest = 1;
-			end
-		end
-		else if(FloorRequest == 7)begin
-			if(Stop == 1)
-				reg_NoStopRequest = 1; //Reunicia la maquina
-			if(CurrentFloor < 3)begin
-				Stops[1][3] = 1;
-				reg_UDRequest = 1;
-			end
-		end
-		reg_OCRequest = 0;
-		//reg_UDRequest = UDIn;
-		reg_DoneNextStageDelay = 1;
-		reg_DoneFRDelay = 1;
 	end
 		
 	end//end always
@@ -208,4 +233,5 @@ assign UDRequest = reg_UDRequest;
 assign OCRequest = reg_OCRequest;
 assign NoStopRequest = reg_NoStopRequest;
 assign TestStopsUP = Stops[1][3:1];
+assign TestStopsDW = Stops[0];
 endmodule
