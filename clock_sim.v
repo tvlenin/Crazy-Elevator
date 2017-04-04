@@ -22,8 +22,8 @@ always@(posedge clk )begin
 		pulse = 0;
 		sec = 0;
 	end
-	//else if (pulse != 100000000)begin
-	else if (pulse != 50000000)begin
+	else if (pulse != 100000000)begin
+	//else if (pulse != 50000000)begin
 	//else if (pulse != 1 )begin
 		DoneReset = 0;
 		pulse = pulse + 27'd1;

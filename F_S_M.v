@@ -55,13 +55,22 @@ always @ (posedge clk or posedge reset) begin
 	end //if reset
 	
 	else begin
+		begin
 		if(DoneDelay == 1)			//Verificar fin del controlador
 			reg_Delay = 0;
+		end
+		
+		begin
 		if(DoneResetClock == 1) 	//Verificar fin del clock
 			c_reset = 0;
+		end
+		
+		begin
 		if(DoneFRDelay == 1)			//Verificar fin la verificacion de los botones(1-4)
 			reg_FRDelay = 0;
+		end
 		
+		begin
 		case(state)
 			SA:
 				if(first_time == 1)begin
@@ -382,6 +391,8 @@ always @ (posedge clk or posedge reset) begin
 					endcase
 				end
 		endcase
+		end
+		
 	end
 
 end//always @ (posedge clk or posedge reset) begin 

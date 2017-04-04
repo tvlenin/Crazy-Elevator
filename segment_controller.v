@@ -8,10 +8,10 @@ module segment_controller(
 	 input Stop,
 	 input pClockTime,
 	 output [3:0] seg_selector,
-    output [8:0] segments
+    output [7:0] segments
     );
 	 
-	 reg [8:0] out_reg;
+	 reg [7:0] out_reg;
 	 reg [3:0] sel_reg;
 	
 	initial begin
@@ -21,7 +21,7 @@ module segment_controller(
 	
 	localparam N = 18;
 	reg [N-1:0]count;
-	reg [4:0]segData;
+	reg [3:0]segData;
 	
 	always @ (posedge clk)
 		count <= count + 1'd1;

@@ -13,7 +13,7 @@ module Interface(
     input Button4,
     input Button5,
 	 output [3:0] seg_selector,
-	 output [8:0] sevenseg,
+	 output [7:0] sevenseg,
 	 output [3:0] outRegDW,
 	 output [3:0] outRegUP
     );

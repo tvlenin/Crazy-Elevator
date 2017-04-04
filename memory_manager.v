@@ -44,7 +44,7 @@ module memory_manager(
 	 reg_DoneNextStageDelay = 0;
 	 end
 	 
-	 always@(posedge clk or posedge reset)begin
+always@(posedge clk or posedge reset)begin
 	 
 	 if(reset == 1)begin
 		Stops[0] = 0;
@@ -58,9 +58,13 @@ module memory_manager(
 	 end
 	 
 	 else begin
+	 
+	 begin
 	 if(NextStageDelay == 1)//Verifica que ya no está presionando un boton de ir a Piso
 		reg_DoneNextStageDelay = 0;
+	 end
 	 
+	 begin
 	 if(Request[1] == 1)begin//Interrupción Request en Algun Piso
 		reg_NoStopRequest = 0; //Detiene la maquina
 		if(Floor == CurrentFloor)begin
@@ -110,14 +114,14 @@ module memory_manager(
 			end
 		end
 	end//end bloque ifs
-	
+	end
 	 
 	 /*if(Stops[0] == 0 && Stops[1] == 0)begin//No hay mas instrucciones que verificar
 		reg_NoStopRequest = 0;
 	 end*/
 	
-	
-	 if(Stop == 1)begin//Interrupcion de fin de ejecucion y esta en espera
+	begin
+	if(Stop == 1)begin//Interrupcion de fin de ejecucion y esta en espera
 		reg_OCRequest = 0;
 		if(Stops[1] != 0)begin
 			reg_UDRequest = 1;
@@ -149,12 +153,14 @@ module memory_manager(
 			end
 			else if(Stops[0][1] && Stops[1][2] == 0 && Stops[1][3] == 0)begin
 				reg_OCRequest = 1;
-				Stops[1][1] = 0;
+				//Stops[1][1] = 0;
+				Stops[1][1] = 1;
 				reg_DoneDelay = 1;
 			end
 			else if(Stops[1][1] && Stops[0][0] == 0)begin
 				reg_OCRequest = 1;
-				Stops[0][1] = 0;
+				//Stops[0][1] = 0;
+				Stops[1][1] = 0;
 				reg_DoneDelay = 1;
 			end
 			//else
@@ -168,12 +174,14 @@ module memory_manager(
 			end
 			else if(Stops[1][2] == 1 && Stops[1][3] == 0)begin
 				reg_OCRequest = 1;
-				Stops[0][2] = 0;
+				//Stops[0][2] = 0;
+				Stops[1][2] = 0;
 				reg_DoneDelay = 1;
 			end
 			else if(Stops[0][2] == 1 && Stops[0][0] == 0 && Stops[0][1] == 0)begin
 				reg_OCRequest = 1;
-				Stops[1][2] = 0;
+				//Stops[1][2] = 0;
+				Stops[0][2] = 0;
 				reg_DoneDelay = 1;
 			end
 			//else
@@ -189,9 +197,11 @@ module memory_manager(
 				//reg_UDRequest = UDIn;
 		end
 	end//end current floor ifs
-	 
-	 
-    if(FRDelay == 1)begin//Nuevo Request de Destino de Piso
+	end
+	
+	
+	begin
+	if(FRDelay == 1)begin//Nuevo Request de Destino de Piso
 		if(FloorRequest-4'd4 == CurrentFloor)begin
 			reg_DoneNextStageDelay = 1;
 			reg_DoneFRDelay = 1;
@@ -241,9 +251,11 @@ module memory_manager(
 			reg_DoneNextStageDelay = 1;
 			reg_DoneFRDelay = 1;
 		end
+	end//end bloque ifs	
 	end
-	end	
-	end//end always
+	
+end//end else
+end//end always
 
 assign DoneNextStageDelay = reg_DoneNextStageDelay;
 assign DoneFRDelay = reg_DoneFRDelay;
